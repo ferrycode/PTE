@@ -14,16 +14,21 @@
          $(document).ready(function() { 
 			var jsonURL = "PTEStudyRWFIB.json";
 			var options = "";
-			var qArray;
+			var qArray ;
 			
 			//Consruct the select  menu
 			$.getJSON(jsonURL, function (data) {
 				qArray = data;
 				$.each(data, function (index, value) {
 					// APPEND OR INSERT DATA TO SELECT ELEMENT.
-					$('#samples').append('<option value="' + value.id + '">' + value.id + '</option>');
+					var n = value.question.indexOf("<select>");
+					var desc = value.question.substring(0, n);
+					desc = desc.substring(0, 100); // max 100
+					$('#samples').append('<option value="' + index+ '">[' +value.id + '] '+desc+' ...</option>');
 				});
-			});
+				loadQuestion(0); // initially load first question 
+			});	
+			
 			// SHOW ANSWERS 
             $("#show_answer").click(function(event){
 				//$("span").show();   
@@ -38,13 +43,10 @@
 					}
             });
 
-	
-			// SHOW SELECTED VALUE.
-			$('#samples').change(function (index) {
-				var questionIndex = this.options[this.selectedIndex].value ;
-				var question = qArray[index].question ;
-				var answersArr = qArray[index].answers ;
-				var optionsArr = qArray[index].options ;
+			function loadQuestion(QIndex){
+				var question = qArray[QIndex].question ;
+				var answersArr = qArray[QIndex].answers ;
+				var optionsArr = qArray[QIndex].options ;
 				var optionsStrArr = [];
 				var answersUL = "";
 				var answersSpans = []; 
@@ -75,6 +77,13 @@
 					$(this).html(optionsStrArr[index]); //inject options 
 					$(this).after(answersSpans[index]);	//inject correct answer span 			
 				}); //end loop selects 
+			
+			}
+			// SHOW SELECTED VALUE.
+			$('#samples').change(function () {
+				//alert(index);
+				var questionIndex = this.options[this.selectedIndex].index ;
+				loadQuestion (questionIndex);
 				
 			});            
          });
@@ -90,7 +99,16 @@
 <title>PTE Quiz</title>
 </head>
 <body>
-	<select id="samples"></select>
+	<div class="alert alert-primary" role="alert">
+	  PTE | READING |  Read & Write Fill In The Blank 
+	</div>
+	<form>
+	  <div class="form-group">
+		<label for="samples">Please chose question to load ... </label>
+		<select id="samples" class="form-control"></select>
+		
+	  </div>
+	</form>
 	<div id="question"> </div>
 	<a id="show_answer" class="btn btn-success" data-toggle="collapse" href="#answersTab" role="button" aria-expanded="false" aria-controls="answersTab">
 		SHOW ANSWERS 
